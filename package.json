@@ -1,6 +1,6 @@
 {
   "name": "claude-proxy",
-  "version": "1.0.0",
+  "version": "0.0.4",
   "description": "Claude-to-OpenAI API Proxy Server",
   "main": "dist/server.js",
   "scripts": {
