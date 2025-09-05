@@ -55,11 +55,6 @@ async function webResponseToNodeResponse(webResponse: Response, res: http.Server
     res.setHeader(key, value);
   });
 
-  // 强制设置 CORS 头部，覆盖所有分支
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key, Anthropic-Version');
-
   // 处理响应体
   if (webResponse.body) {
     const contentType = webResponse.headers.get('content-type') || '';

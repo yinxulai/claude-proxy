@@ -1,0 +1,40 @@
+# 忽略 node_modules
+node_modules
+npm-debug.log*
+
+# 忽略测试文件
+test/
+*.test.ts
+*.test.js
+vitest.config.ts
+
+# 忽略开发工具配置
+.vscode/
+.idea/
+
+# 忽略版本控制
+.git
+.gitignore
+
+# 忽略文档
+README.md
+*.md
+
+# 忽略构建产物（会在容器中重新构建）
+dist/
+
+# 忽略环境文件
+.env
+.env.*
+
+# 忽略日志文件
+logs
+*.log
+
+# 忽略临时文件
+.DS_Store
+.tmp/
+.cache/
+
+# 忽略 coverage 报告
+coverage/
