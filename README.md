@@ -19,9 +19,22 @@
 
 ## 🚀 快速开始
 
-### 方式一：使用 Docker（推荐）
+### 方式一：使用公共服务（最简单）
 
-最快的部署方式是使用预构建的 Docker 镜像：
+我们提供了一个免费的公共代理服务，您可以直接使用而无需部署：
+
+**服务地址：** `https://claude-proxy.yinxulai.com`
+
+**特点：**
+
+- ✅ 免费使用，无需注册
+- ✅ 支持所有主流 AI API 提供商
+- ✅ 完整支持流式响应和 Tool Calling
+- ⚠️ 仅用于测试和开发，生产环境建议自部署
+
+### 方式二：使用 Docker（推荐自部署）
+
+如果您需要在生产环境使用或希望更好的隐私保护，建议自行部署：
 
 ```bash
 # 拉取镜像
@@ -37,18 +50,9 @@ docker run -p 3000:3000 \
 # 现在可以访问 http://localhost:3000
 ```
 
-**使用示例：**
+### 方式三：从源码构建
 
-```bash
-# 配置 Claude CLI 使用代理
-export CLAUDE_API_URL="http://localhost:3000"
-export CLAUDE_API_KEY="your-target-api-key"
-
-# 发送请求（以 Groq 为例）
-claude "你好，世界！" --model "https/api.groq.com/openai/v1/llama3-70b-8192"
-```
-
-### 方式二：从源码构建
+如果您希望从源码构建或进行自定义开发：
 
 1. **克隆仓库**
 
@@ -93,6 +97,42 @@ https://your-proxy-domain/<protocol>/<api-domain>/<path>/<model>/v1/messages
 - `model`: 要使用的模型名称
 
 ### 请求示例
+
+**使用公共服务 + Groq API：**
+
+```bash
+curl -X POST "https://claude-proxy.yinxulai.com/https/api.groq.com/openai/v1/llama3-70b-8192/v1/messages" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: your-groq-api-key" \
+  -d '{
+    "model": "claude-3-haiku-20240307",
+    "max_tokens": 1024,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello, world!"
+      }
+    ]
+  }'
+```
+
+**使用公共服务 + OpenAI API：**
+
+```bash
+curl -X POST "https://claude-proxy.yinxulai.com/https/api.openai.com/v1/gpt-4o-mini/v1/messages" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: your-openai-api-key" \
+  -d '{
+    "model": "claude-3-haiku-20240307",
+    "max_tokens": 1024,
+    "messages": [
+      {
+        "role": "user", 
+        "content": "Hello, world!"
+      }
+    ]
+  }'
+```
 
 **使用 Groq API：**
 
@@ -184,6 +224,15 @@ curl -X POST "https://your-proxy-domain/v1/messages" \
 5. **流式处理**：支持实时流式响应的转换和转发
 
 ## 🛡️ 安全注意事项
+
+### 公共服务使用须知
+
+- **仅用于测试和开发**：公共服务 `claude-proxy.yinxulai.com` 仅供学习、测试和开发使用
+- **数据隐私**：虽然代理服务器不会记录您的请求内容，但建议生产环境使用自部署的服务
+- **服务稳定性**：公共服务可能会有维护停机，不保证 100% 可用性
+- **使用限制**：可能会对频繁请求进行限制以保证服务质量
+
+### 自部署安全建议
 
 - 代理服务器会转发您的 API 密钥，请确保部署在可信的环境中
 - 建议为生产环境设置适当的访问控制和速率限制
