@@ -13,73 +13,9 @@
 
 ## 🎯 使用场景
 
-- 使用 Claude CLI 工具访问 OpenAI、Google Gemini、Groq、Ollama 等服务
+- 使用 Claude Code 工具访问 OpenAI、Google Gemini、Groq、Ollama 等服务
 - 在不修改现有 Claude 客户端代码的情况下切换到其他 AI 服务
 - 为团队提供统一的 AI API 访问入口
-
-## 🚀 快速开始
-
-### 方式一：使用公共服务（最简单）
-
-我们提供了一个免费的公共代理服务，您可以直接使用而无需部署：
-
-**服务地址：** `https://claude-proxy.yinxulai.com`
-
-**特点：**
-
-- ✅ 免费使用，无需注册
-- ✅ 支持所有主流 AI API 提供商
-- ✅ 完整支持流式响应和 Tool Calling
-- ⚠️ 仅用于测试和开发，生产环境建议自部署
-
-### 方式二：使用 Docker（推荐自部署）
-
-如果您需要在生产环境使用或希望更好的隐私保护，建议自行部署：
-
-```bash
-# 拉取镜像
-docker pull ghcr.io/yinxulai/claude-proxy
-
-# 运行容器
-docker run -p 3000:3000 \
-  -e HAIKU_MODEL_NAME="gpt-4o-mini" \
-  -e HAIKU_BASE_URL="https://api.openai.com/v1" \
-  -e HAIKU_API_KEY="your-openai-api-key" \
-  ghcr.io/yinxulai/claude-proxy
-
-# 现在可以访问 http://localhost:3000
-```
-
-### 方式三：从源码构建
-
-如果您希望从源码构建或进行自定义开发：
-
-1. **克隆仓库**
-
-   ```bash
-   git clone https://github.com/yinxulai/claude-proxy.git
-   cd claude-proxy
-   ```
-
-2. **安装依赖**
-
-   ```bash
-   npm install
-   ```
-
-3. **Docker 构建和运行**
-
-   ```bash
-   # 构建镜像
-   docker build -t claude-proxy .
-   
-   # 运行容器
-   docker run -p 3000:3000 \
-     -e HAIKU_MODEL_NAME="gpt-4o-mini" \
-     -e HAIKU_BASE_URL="https://api.openai.com/v1" \
-     -e HAIKU_API_KEY="your-openai-api-key" \
-     claude-proxy
-   ```
 
 ## 🔧 API 使用说明
 
@@ -96,7 +32,39 @@ https://your-proxy-domain/<protocol>/<api-domain>/<path>/<model>/v1/messages
 - `path`: API 路径（通常是 `openai/v1` 或 `v1`）
 - `model`: 要使用的模型名称
 
-### 请求示例
+### Claude Code 工具使用
+
+**基本环境变量配置：**
+
+```bash
+# 设置代理服务器地址
+export ANTHROPIC_BASE_URL=https://claude-proxy.yinxulai.com/<protocol>/<api-domain>/<path>/<model>
+# API Key（使用动态路由时可以设置任意值）
+export ANTHROPIC_API_KEY="any-value"
+
+# 测试使用
+claude code "Hello, how are you?"
+```
+
+**永久配置：**
+
+```bash
+# 添加到 shell 配置文件
+echo 'export ANTHROPIC_BASE_URL=https://claude-proxy.yinxulai.com/<protocol>/<api-domain>/<path>/<model>' >> ~/.zshrc
+echo 'export ANTHROPIC_API_KEY="any-value"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### 支持的 API 提供商
+
+- **OpenAI** - `api.openai.com/v1`
+- **Google Gemini** - `generativelanguage.googleapis.com/v1beta`
+- **Groq** - `api.groq.com/openai/v1`
+- **Ollama** - `localhost:11434/v1`（本地部署）
+- **Azure OpenAI** - `your-resource.openai.azure.com/openai/deployments/your-deployment`
+- 以及其他任何兼容 OpenAI API 格式的服务
+
+### 直接 API 调用示例
 
 **使用公共服务 + Groq API：**
 
@@ -134,45 +102,90 @@ curl -X POST "https://claude-proxy.yinxulai.com/https/api.openai.com/v1/gpt-4o-m
   }'
 ```
 
-**使用 Groq API：**
+## 🚀 部署指南
+
+### 方式一：使用公共服务（最简单）
+
+我们提供了一个免费的公共代理服务，您可以直接使用而无需部署：
+
+**服务地址：** `https://claude-proxy.yinxulai.com`
+
+**特点：**
+
+- ✅ 免费使用，无需注册
+- ✅ 支持所有主流 AI API 提供商
+- ✅ 完整支持流式响应和 Tool Calling
+- ⚠️ 仅用于测试和开发，生产环境建议自部署
+
+### 方式二：使用 Docker（推荐自部署）
+
+如果您需要在生产环境使用或希望更好的隐私保护，建议自行部署：
 
 ```bash
-curl -X POST "https://your-proxy-domain/https/api.groq.com/openai/v1/llama3-70b-8192/v1/messages" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: your-groq-api-key" \
-  -d '{
-    "model": "claude-3-haiku-20240307",
-    "max_tokens": 1024,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Hello, world!"
-      }
-    ]
-  }'
+# 拉取镜像
+docker pull ghcr.io/yinxulai/claude-proxy
+
+# 运行容器
+docker run -p 3000:3000 \
+  -e HAIKU_MODEL_NAME="gpt-4o-mini" \
+  -e HAIKU_BASE_URL="https://api.openai.com/v1" \
+  -e HAIKU_API_KEY="your-openai-api-key" \
+  ghcr.io/yinxulai/claude-proxy
 ```
 
-**使用 OpenAI API：**
+**环境变量配置：**
 
 ```bash
-curl -X POST "https://your-proxy-domain/https/api.openai.com/v1/gpt-4/v1/messages" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: your-openai-api-key" \
-  -d '{
-    "model": "claude-3-haiku-20240307",
-    "max_tokens": 1024,
-    "messages": [
-      {
-        "role": "user", 
-        "content": "Hello, world!"
-      }
-    ]
-  }'
+# 设置代理服务器地址
+export ANTHROPIC_BASE_URL=http://localhost:3000
+export ANTHROPIC_API_KEY="any-value"
+
+# 测试使用
+claude code "你好，请介绍一下自己"
+```
+
+**自定义端口部署：**
+
+```bash
+# 运行在端口 8082
+docker run -p 8082:3000 \
+  -e HAIKU_MODEL_NAME="gpt-4o-mini" \
+  -e HAIKU_BASE_URL="https://api.openai.com/v1" \
+  -e HAIKU_API_KEY="your-openai-api-key" \
+  ghcr.io/yinxulai/claude-proxy
+
+# 对应的环境变量配置
+export ANTHROPIC_BASE_URL=http://localhost:8082
+export ANTHROPIC_API_KEY="any-value"
+claude code "请写一首关于春天的诗"
+```
+
+### 方式三：从源码构建
+
+如果您希望从源码构建或进行自定义开发：
+
+```bash
+# 克隆仓库
+git clone https://github.com/yinxulai/claude-proxy.git
+cd claude-proxy
+
+# 安装依赖
+npm install
+
+# 构建镜像
+docker build -t claude-proxy .
+
+# 运行容器
+docker run -p 3000:3000 \
+  -e HAIKU_MODEL_NAME="gpt-4o-mini" \
+  -e HAIKU_BASE_URL="https://api.openai.com/v1" \
+  -e HAIKU_API_KEY="your-openai-api-key" \
+  claude-proxy
 ```
 
 ### 预配置的 Haiku 路由
 
-如果您配置了 Haiku 相关的环境变量，可以直接使用：
+如果您配置了 Haiku 相关的环境变量，可以直接使用简化的路由：
 
 ```bash
 curl -X POST "https://your-proxy-domain/v1/messages" \
@@ -190,31 +203,6 @@ curl -X POST "https://your-proxy-domain/v1/messages" \
   }'
 ```
 
-### 运行测试
-
-   ```bash
-   # 运行所有测试
-   npm test
-   
-   # 运行单次测试
-   npm run test:run
-   
-   # 查看测试覆盖率
-   npm run test:coverage
-   
-   # 开启测试 UI
-   npm run test:ui
-   ```
-
-## 📝 支持的 API 提供商
-
-- **OpenAI** - `api.openai.com/v1`
-- **Google Gemini** - `generativelanguage.googleapis.com/v1beta`
-- **Groq** - `api.groq.com/openai/v1`
-- **Ollama** - `localhost:11434/v1`（本地部署）
-- **Azure OpenAI** - `your-resource.openai.azure.com/openai/deployments/your-deployment`
-- 以及其他任何兼容 OpenAI API 格式的服务
-
 ## 🔍 工作原理
 
 1. **请求解析**：从 URL 路径中提取目标 API 地址和模型信息
@@ -222,6 +210,22 @@ curl -X POST "https://your-proxy-domain/v1/messages" \
 3. **请求转发**：将转换后的请求发送到目标 API
 4. **响应转换**：将 OpenAI API 响应转换回 Claude API 格式
 5. **流式处理**：支持实时流式响应的转换和转发
+
+## 🧪 开发测试
+
+```bash
+# 运行所有测试
+npm test
+
+# 运行单次测试
+npm run test:run
+
+# 查看测试覆盖率
+npm run test:coverage
+
+# 开启测试 UI
+npm run test:ui
+```
 
 ## 🛡️ 安全注意事项
 
