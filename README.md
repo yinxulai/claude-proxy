@@ -19,20 +19,36 @@
 
 ## 🚀 快速开始
 
-### 方式一：使用公共代理服务
+### 方式一：使用 Docker（推荐）
 
-如果您想快速体验，可以直接使用预部署的公共服务：
+最快的部署方式是使用预构建的 Docker 镜像：
+
+```bash
+# 拉取镜像
+docker pull ghcr.io/yinxulai/claude-proxy
+
+# 运行容器
+docker run -p 3000:3000 \
+  -e HAIKU_MODEL_NAME="gpt-4o-mini" \
+  -e HAIKU_BASE_URL="https://api.openai.com/v1" \
+  -e HAIKU_API_KEY="your-openai-api-key" \
+  ghcr.io/yinxulai/claude-proxy
+
+# 现在可以访问 http://localhost:3000
+```
+
+**使用示例：**
 
 ```bash
 # 配置 Claude CLI 使用代理
-export CLAUDE_API_URL="https://your-proxy-domain.workers.dev"
+export CLAUDE_API_URL="http://localhost:3000"
 export CLAUDE_API_KEY="your-target-api-key"
 
 # 发送请求（以 Groq 为例）
 claude "你好，世界！" --model "https/api.groq.com/openai/v1/llama3-70b-8192"
 ```
 
-### 方式二：部署自己的代理服务
+### 方式二：从源码构建
 
 1. **克隆仓库**
 
@@ -47,32 +63,18 @@ claude "你好，世界！" --model "https/api.groq.com/openai/v1/llama3-70b-819
    npm install
    ```
 
-3. **配置环境变量（可选）**
-
-   创建 `wrangler.toml` 文件：
-
-   ```toml
-   name = "claude-proxy"
-   main = "source/proxy.ts"
-   compatibility_date = "2023-12-01"
-
-   [vars]
-   HAIKU_MODEL_NAME = "gpt-4o-mini"
-   HAIKU_BASE_URL = "https://api.openai.com/v1"
-   HAIKU_API_KEY = "your-openai-api-key"
-   ```
-
-4. **部署到 Cloudflare Workers**
+3. **Docker 构建和运行**
 
    ```bash
-   # 安装 Wrangler CLI
-   npm install -g wrangler
+   # 构建镜像
+   docker build -t claude-proxy .
    
-   # 登录 Cloudflare
-   npx wrangler login
-   
-   # 部署
-   npx wrangler deploy
+   # 运行容器
+   docker run -p 3000:3000 \
+     -e HAIKU_MODEL_NAME="gpt-4o-mini" \
+     -e HAIKU_BASE_URL="https://api.openai.com/v1" \
+     -e HAIKU_API_KEY="your-openai-api-key" \
+     claude-proxy
    ```
 
 ## 🔧 API 使用说明
@@ -80,7 +82,7 @@ claude "你好，世界！" --model "https/api.groq.com/openai/v1/llama3-70b-819
 ### 动态路由格式
 
 ```text
-https://your-proxy-domain.workers.dev/<protocol>/<api-domain>/<path>/<model>/v1/messages
+https://your-proxy-domain/<protocol>/<api-domain>/<path>/<model>/v1/messages
 ```
 
 **参数说明：**
@@ -95,7 +97,7 @@ https://your-proxy-domain.workers.dev/<protocol>/<api-domain>/<path>/<model>/v1/
 **使用 Groq API：**
 
 ```bash
-curl -X POST "https://your-proxy-domain.workers.dev/https/api.groq.com/openai/v1/llama3-70b-8192/v1/messages" \
+curl -X POST "https://your-proxy-domain/https/api.groq.com/openai/v1/llama3-70b-8192/v1/messages" \
   -H "Content-Type: application/json" \
   -H "x-api-key: your-groq-api-key" \
   -d '{
@@ -113,7 +115,7 @@ curl -X POST "https://your-proxy-domain.workers.dev/https/api.groq.com/openai/v1
 **使用 OpenAI API：**
 
 ```bash
-curl -X POST "https://your-proxy-domain.workers.dev/https/api.openai.com/v1/gpt-4/v1/messages" \
+curl -X POST "https://your-proxy-domain/https/api.openai.com/v1/gpt-4/v1/messages" \
   -H "Content-Type: application/json" \
   -H "x-api-key: your-openai-api-key" \
   -d '{
@@ -130,10 +132,10 @@ curl -X POST "https://your-proxy-domain.workers.dev/https/api.openai.com/v1/gpt-
 
 ### 预配置的 Haiku 路由
 
-如果您在 `wrangler.toml` 中配置了 Haiku 相关的环境变量，可以直接使用：
+如果您配置了 Haiku 相关的环境变量，可以直接使用：
 
 ```bash
-curl -X POST "https://your-proxy-domain.workers.dev/v1/messages" \
+curl -X POST "https://your-proxy-domain/v1/messages" \
   -H "Content-Type: application/json" \
   -H "x-api-key: will-be-ignored-uses-configured-key" \
   -d '{
@@ -148,23 +150,7 @@ curl -X POST "https://your-proxy-domain.workers.dev/v1/messages" \
   }'
 ```
 
-## 🧪 本地开发
-
-1. **设置开发环境变量**
-
-   ```env
-   HAIKU_MODEL_NAME=gpt-4o-mini
-   HAIKU_BASE_URL=https://api.openai.com/v1
-   HAIKU_API_KEY=your-openai-api-key
-   ```
-
-2. **启动开发服务器**
-
-   ```bash
-   npx wrangler dev
-   ```
-
-3. **运行测试**
+### 运行测试
 
    ```bash
    # 运行所有测试
@@ -203,26 +189,6 @@ curl -X POST "https://your-proxy-domain.workers.dev/v1/messages" \
 - 建议为生产环境设置适当的访问控制和速率限制
 - 定期更新依赖项以获取安全补丁
 
-## 📁 项目结构
-
-```text
-claude-proxy/
-├── source/              # 源代码目录
-│   ├── proxy.ts        # 主要代理逻辑
-│   └── server.ts       # 服务器入口
-├── test/               # 测试文件
-│   ├── basic-api.test.ts
-│   ├── dynamic-routing.test.ts
-│   ├── haiku-model.test.ts
-│   ├── streaming.test.ts
-│   ├── tool-calling.test.ts
-│   └── utils.ts
-├── package.json        # 项目配置
-├── tsconfig.json       # TypeScript 配置
-├── vitest.config.ts    # 测试配置
-└── README.md          # 项目文档
-```
-
 ## 🤝 贡献指南
 
 欢迎提交 Issue 和 Pull Request！
@@ -239,6 +205,7 @@ claude-proxy/
 
 ## 🙏 致谢
 
+- [claude_proxy](https://github.com/tingxifa/claude_proxy) 核心转换器
 - [Anthropic](https://www.anthropic.com/) - Claude API
 - [OpenAI](https://openai.com/) - OpenAI API 标准
 - [Cloudflare](https://www.cloudflare.com/) - Workers 平台
