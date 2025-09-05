@@ -49,11 +49,16 @@ async function nodeRequestToWebRequest(req: http.IncomingMessage, body: string):
 async function webResponseToNodeResponse(webResponse: Response, res: http.ServerResponse) {
   // 设置状态码
   res.statusCode = webResponse.status;
-  
+
   // 设置头部
   webResponse.headers.forEach((value, key) => {
     res.setHeader(key, value);
   });
+
+  // 强制设置 CORS 头部，覆盖所有分支
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key, Anthropic-Version');
 
   // 处理响应体
   if (webResponse.body) {
@@ -88,22 +93,21 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
   try {
     // 读取请求体
     const body = req.method === 'POST' ? await readRequestBody(req) : '';
-    
+
     // 转换为 Web API Request
     const webRequest = await nodeRequestToWebRequest(req, body);
-    
+
     // 创建模拟的执行上下文
     const ctx = new MockExecutionContext();
-    
+
     // 调用原始的 proxy 处理函数
     const webResponse = await proxyModule.fetch(webRequest, env, ctx as any);
-    
+
     // 转换并发送响应
     await webResponseToNodeResponse(webResponse, res);
-    
+
   } catch (error) {
     console.error('Request handling error:', error);
-    res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Internal server error' }));
   }
 }

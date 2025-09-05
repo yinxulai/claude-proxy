@@ -106,8 +106,7 @@ interface OpenAIRequest {
     tool_choice?: "auto" | "none" | { type: "function"; function: { name: string } };
 }
 
-// --- Cloudflare Workers Types ---
-type ExecutionContext = unknown
+type ExecutionContext = {}
 
 // --- Main Worker Logic ---
 
