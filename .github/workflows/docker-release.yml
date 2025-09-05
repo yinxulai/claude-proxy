@@ -44,8 +44,8 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=semver,pattern={{major}}.{{minor}},enable={{is_default_branch}}
+            type=semver,pattern={{major}},enable=${{ !startsWith(github.ref_name, '0.') }}
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: 构建并推送 Docker 镜像
