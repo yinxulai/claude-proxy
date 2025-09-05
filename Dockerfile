@@ -21,5 +21,8 @@ RUN npm install && npm run build
 # 删除源代码和 TypeScript 配置（只保留编译后的 JavaScript）
 RUN rm -rf source/ tsconfig.json
 
+# 暴露端口（可通过 PORT 环境变量自定义，默认 3000）
+EXPOSE 3000
+
 # 启动应用
 CMD ["npm", "start"]
