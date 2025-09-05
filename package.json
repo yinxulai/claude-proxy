@@ -1,0 +1,19 @@
+{
+  "name": "claude-proxy",
+  "version": "1.0.0",
+  "description": "Claude-to-OpenAI API Proxy Server",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsc && node dist/server.js",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.13",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
