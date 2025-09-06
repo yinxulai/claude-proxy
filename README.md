@@ -1,6 +1,6 @@
 # Claude Proxy
 
-[![测试状态](https://github.com/yinxulai/claude-proxy/workflows/测试/badge.svg)](https://github.com/yinxulai/claude-proxy/actions/workflows/test.yml)
+[![测试状态](https://github.com/yinxulai/claude-proxy/actions/workflows/test.yml/badge.svg)](https://github.com/yinxulai/claude-proxy/actions/workflows/test.yml)
 
 一个强大的代理服务器，能够将 Claude API 格式的请求无缝转换为 OpenAI API 格式，让您能够在任何支持 OpenAI API 的服务上使用 Claude 客户端工具。
 
