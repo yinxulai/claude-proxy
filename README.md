@@ -56,7 +56,7 @@ curl -X POST "https://claude-proxy.yinxulai.com/https/api.groq.com/openai/v1/lla
 | **Google Gemini** | `https://claude-proxy.yinxulai.com/https/generativelanguage.googleapis.com/v1beta/gemini-pro` |
 | **Groq** | `https://claude-proxy.yinxulai.com/https/api.groq.com/openai/v1/llama3-70b-8192` |
 | **Ollama 本地** | `https://claude-proxy.yinxulai.com/http/localhost:11434/v1/llama3` |
-| **含 / 的模型名** | `https://claude-proxy.yinxulai.com/https/api.example.com/v1/z-ai%2Fglm4.7` |
+| **含 / 的模型名** | `https://claude-proxy.yinxulai.com/https/api.example.com/v1/~/z-ai/glm4.7` |
 
 ## ✨ 功能特性
 
@@ -78,16 +78,36 @@ curl -X POST "https://claude-proxy.yinxulai.com/https/api.groq.com/openai/v1/lla
 
 ### 动态路由格式
 
+支持两种 URL 格式：
+
+**标准格式**（模型名不含 `/`）：
 ```text
 https://claude-proxy.yinxulai.com/<protocol>/<api-domain>/<path>/<model>/v1/messages
 ```
+
+**波浪线分隔格式**（推荐，支持模型名中含 `/`）：
+```text
+https://claude-proxy.yinxulai.com/<protocol>/<api-domain>/<path>/~/<model>/v1/messages
+```
+
+在路径中使用 `/~/` 作为分隔符，`/~/` 之后的所有内容（直到 `/v1/messages`）都是模型名称，无需对 `/` 进行任何编码。
 
 **参数说明：**
 
 - `protocol`: `https` 或 `http`
 - `api-domain`: 目标 API 的域名
 - `path`: API 路径（通常是 `openai/v1` 或 `v1`）
-- `model`: 要使用的模型名称。**如果模型名称中包含 `/`，请将其 URL 编码为 `%2F`**（例如 `z-ai/glm4.7` → `z-ai%2Fglm4.7`）
+- `model`: 要使用的模型名称（使用波浪线格式时，模型名可直接包含 `/`）
+
+**示例：**
+
+```bash
+# 模型名不含 /，使用标准格式
+export ANTHROPIC_BASE_URL=https://claude-proxy.yinxulai.com/https/api.openai.com/v1/gpt-4o-mini
+
+# 模型名包含 /（如 z-ai/glm4.7），使用 /~/ 分隔符，无需编码
+export ANTHROPIC_BASE_URL=https://claude-proxy.yinxulai.com/https/api.example.com/v1/~/z-ai/glm4.7
+```
 
 ### Claude Code 工具配置
 
@@ -100,6 +120,10 @@ export ANTHROPIC_API_KEY="any-value"
 
 # 一键配置 Groq
 export ANTHROPIC_BASE_URL=https://claude-proxy.yinxulai.com/https/api.groq.com/openai/v1/llama3-70b-8192
+export ANTHROPIC_API_KEY="any-value"
+
+# 模型名包含 /，使用 /~/ 分隔符（无需编码）
+export ANTHROPIC_BASE_URL=https://claude-proxy.yinxulai.com/https/api.example.com/v1/~/z-ai/glm4.7
 export ANTHROPIC_API_KEY="any-value"
 
 # 测试使用
