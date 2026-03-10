@@ -223,14 +223,53 @@ export default {
 
 /**
  * Parses the model and base URL from the request pathname.
- * The path is expected to be in the format: /<scheme>/<host>/.../<model_name>/v1/messages
- * or /<host>/.../<model_name>/v1/messages (defaulting to https).
+ *
+ * Two URL formats are supported:
+ *
+ * 1. **Tilde-separator format** (recommended for model names that contain `/`):
+ *    `/<scheme>/<host>/[path]/~/<model_name>/v1/messages`
+ *    The `/~/` token explicitly separates the base URL path from the model name,
+ *    so model names like `z-ai/glm4.7` can be used without any percent-encoding.
+ *
+ * 2. **Legacy format** (backward-compatible):
+ *    `/<scheme>/<host>/[path]/<model_name>/v1/messages`
+ *    The last path segment before `/v1/messages` is used as the model name.
+ *    Model names containing `/` must be percent-encoded as `%2F` in this format.
+ *
+ * In both formats the scheme defaults to `https` when omitted.
+ *
  * @param pathname The URL pathname from the request.
  * @returns An object with `baseUrl` and `modelName`, or `null` if the path doesn't contain a dynamic configuration.
  */
 function parsePathAndModel(pathname: string): { baseUrl: string; modelName: string } | null {
     // Remove the mandatory suffix to isolate the dynamic parts of the path.
     const dynamicPath = pathname.substring(0, pathname.lastIndexOf('/v1/messages'));
+
+    // --- Tilde-separator format: /<scheme>/<host>/<api-path>/~/<model-name>/v1/messages ---
+    // The first occurrence of '/~/' separates the base-URL portion from the model name,
+    // allowing model names that contain '/' (e.g. "z-ai/glm4.7") without any encoding.
+    const tildeIndex = dynamicPath.indexOf('/~/');
+    if (tildeIndex !== -1) {
+        const basePart = dynamicPath.substring(0, tildeIndex);
+        const modelName = dynamicPath.substring(tildeIndex + 3).trim(); // skip '/~/' and strip whitespace
+
+        if (!modelName) return null;
+
+        const parts = basePart.split('/').filter(p => p);
+        if (parts.length < 1) return null;
+
+        let baseUrl: string;
+        if (parts[0].toLowerCase() === 'http' || parts[0].toLowerCase() === 'https') {
+            const scheme = parts.shift()!;
+            baseUrl = `${scheme}://${parts.join('/')}`;
+        } else {
+            baseUrl = `https://${parts.join('/')}`;
+        }
+
+        return { baseUrl, modelName };
+    }
+
+    // --- Legacy format: last path segment before /v1/messages is the model name ---
     const parts = dynamicPath.split('/').filter(p => p);
 
     if (parts.length < 2) {
@@ -239,8 +278,14 @@ function parsePathAndModel(pathname: string): { baseUrl: string; modelName: stri
         return null;
     }
 
-    // The last part of the dynamic path is the model name.
-    const modelName = parts.pop()!;
+    // decodeURIComponent handles model names containing '/' encoded as '%2F'.
+    let modelName: string;
+    try {
+        modelName = decodeURIComponent(parts.pop()!);
+    } catch {
+        return null;
+    }
+
     let baseUrl: string;
 
     // Reconstruct the base URL from the remaining parts.

@@ -105,6 +105,97 @@ describe('Dynamic Routing Tests', () => {
       const responseData = await response.json()
       expectClaudeResponseFormat(responseData)
     })
+
+    it('should handle model names containing "/" encoded as "%2F" in the URL (legacy format)', async () => {
+      let capturedRequest: any = null
+
+      const mockFetch = global.fetch
+      global.fetch = async (url: any, options: any) => {
+        capturedRequest = JSON.parse(options.body)
+        return new Response(JSON.stringify({
+          id: 'test',
+          object: 'chat.completion',
+          created: Date.now(),
+          model: 'z-ai/glm4.7',
+          choices: [{
+            index: 0,
+            message: { role: 'assistant', content: 'Test response' },
+            finish_reason: 'stop'
+          }],
+          usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 }
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
+      try {
+        // Model name "z-ai/glm4.7" is URL-encoded as "z-ai%2Fglm4.7" in the path
+        const request = createTestRequest('/https/api.openai.com/v1/z-ai%2Fglm4.7/v1/messages', {
+          body: { ...claudeRequestData, model: 'z-ai/glm4.7' }
+        })
+
+        const response = await proxyModule.fetch(request, env, {})
+
+        expect(response.status).toBe(200)
+        const responseData = await response.json()
+        expectClaudeResponseFormat(responseData)
+        expect(responseData.model).toBe('z-ai/glm4.7')
+
+        // Verify the upstream API was called with the correctly decoded model name
+        expect(capturedRequest).toBeTruthy()
+        expect(capturedRequest.model).toBe('z-ai/glm4.7')
+      } finally {
+        global.fetch = mockFetch
+      }
+    })
+
+    it('should handle model names containing "/" using the /~/ separator format (no encoding needed)', async () => {
+      let capturedRequest: any = null
+      let capturedUrl: string | null = null
+
+      const mockFetch = global.fetch
+      global.fetch = async (url: any, options: any) => {
+        capturedUrl = typeof url === 'string' ? url : url.toString()
+        capturedRequest = JSON.parse(options.body)
+        return new Response(JSON.stringify({
+          id: 'test',
+          object: 'chat.completion',
+          created: Date.now(),
+          model: 'z-ai/glm4.7',
+          choices: [{
+            index: 0,
+            message: { role: 'assistant', content: 'Test response' },
+            finish_reason: 'stop'
+          }],
+          usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 }
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
+      try {
+        // Use /~/ as the separator between the base URL path and the model name.
+        // This allows model names with '/' without any percent-encoding.
+        const request = createTestRequest('/https/api.openai.com/v1/~/z-ai/glm4.7/v1/messages', {
+          body: { ...claudeRequestData, model: 'z-ai/glm4.7' }
+        })
+
+        const response = await proxyModule.fetch(request, env, {})
+
+        expect(response.status).toBe(200)
+        const responseData = await response.json()
+        expectClaudeResponseFormat(responseData)
+        expect(responseData.model).toBe('z-ai/glm4.7')
+
+        // Verify the upstream API was called with the correct base URL (model name NOT in URL)
+        // and that the request body carries the correctly parsed model name.
+        expect(capturedUrl).toBe('https://api.openai.com/v1/chat/completions')
+        expect(capturedRequest).toBeTruthy()
+        expect(capturedRequest.model).toBe('z-ai/glm4.7')
+      } finally {
+        global.fetch = mockFetch
+      }
+    })
   })
 
   describe('API key handling', () => {
