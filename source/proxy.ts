@@ -240,7 +240,13 @@ function parsePathAndModel(pathname: string): { baseUrl: string; modelName: stri
     }
 
     // The last part of the dynamic path is the model name.
-    const modelName = parts.pop()!;
+    // decodeURIComponent handles model names containing '/' encoded as '%2F'.
+    let modelName: string;
+    try {
+        modelName = decodeURIComponent(parts.pop()!);
+    } catch {
+        return null;
+    }
     let baseUrl: string;
 
     // Reconstruct the base URL from the remaining parts.

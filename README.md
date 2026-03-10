@@ -56,6 +56,7 @@ curl -X POST "https://claude-proxy.yinxulai.com/https/api.groq.com/openai/v1/lla
 | **Google Gemini** | `https://claude-proxy.yinxulai.com/https/generativelanguage.googleapis.com/v1beta/gemini-pro` |
 | **Groq** | `https://claude-proxy.yinxulai.com/https/api.groq.com/openai/v1/llama3-70b-8192` |
 | **Ollama 本地** | `https://claude-proxy.yinxulai.com/http/localhost:11434/v1/llama3` |
+| **含 / 的模型名** | `https://claude-proxy.yinxulai.com/https/api.example.com/v1/z-ai%2Fglm4.7` |
 
 ## ✨ 功能特性
 
@@ -86,7 +87,7 @@ https://claude-proxy.yinxulai.com/<protocol>/<api-domain>/<path>/<model>/v1/mess
 - `protocol`: `https` 或 `http`
 - `api-domain`: 目标 API 的域名
 - `path`: API 路径（通常是 `openai/v1` 或 `v1`）
-- `model`: 要使用的模型名称
+- `model`: 要使用的模型名称。**如果模型名称中包含 `/`，请将其 URL 编码为 `%2F`**（例如 `z-ai/glm4.7` → `z-ai%2Fglm4.7`）
 
 ### Claude Code 工具配置
 
